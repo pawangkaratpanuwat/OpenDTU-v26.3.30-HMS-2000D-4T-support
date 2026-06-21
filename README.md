@@ -28,8 +28,8 @@ CMT2300A chip. See [`firmware/REFLASH.md`](firmware/REFLASH.md) for full notes.
 ### Option B — Build from source
 Requires [PlatformIO](https://platformio.org/):
 ```bash
-git clone https://github.com/pawangkaratpanuwat/DTU.git
-cd DTU
+git clone https://github.com/pawangkaratpanuwat/OpenDTU-v26.3.30-HMS-2000D-4T-support.git
+cd OpenDTU-v26.3.30-HMS-2000D-4T-support
 pio run -e generic_esp32                      # build
 pio run -e generic_esp32 -t upload --upload-port /dev/ttyUSB0   # flash over USB
 ```
