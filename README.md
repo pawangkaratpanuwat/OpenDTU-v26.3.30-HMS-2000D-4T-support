@@ -1,3 +1,47 @@
+# My patched OpenDTU — HMS-2000D-4T (serial prefix 0x1421) support
+
+This is a personal fork of [tbnobody/OpenDTU](https://github.com/tbnobody/OpenDTU)
+(based on tag **v26.3.30**) with one fix: the **Hoymiles HMS-2000D-4T**
+(serial numbers starting `1421...`, e.g. `1421A0208266`, P/N CV010682) was
+reported as "Unknown" and never polled because OpenDTU's `isValidSerial()`
+check didn't include the `0x1421` prefix. This fork adds it.
+
+See the patch: [`0001-Add-support-for-HMS-2000D-4T-inverters-with-serial-p.patch`](0001-Add-support-for-HMS-2000D-4T-inverters-with-serial-p.patch)
+(one line changed in `lib/Hoymiles/src/inverters/HMS_4CH.cpp`).
+
+## Install
+
+### Option A — Flash a pre-built binary (no build tools needed)
+Pre-built binaries are in [`firmware/`](firmware/):
+- `opendtu-hms2000d-patched-ota.bin` — upload via the OpenDTU web UI: **Settings → Firmware Upgrade**. Your existing config (WiFi, inverter, CMT pins, MQTT) is preserved.
+- `opendtu-hms2000d-patched-factory.bin` — full image for a first-time flash over USB:
+  ```bash
+  pip install esptool
+  esptool.py --chip esp32 --port /dev/ttyUSB0 --baud 921600 \
+    write_flash 0x0 firmware/opendtu-hms2000d-patched-factory.bin
+  ```
+
+After flashing, if the radio shows `cmt_connected=false`, fully power-cycle the
+ESP32/CMT2300A module (unplug ~10s, replug) — a soft reboot doesn't reset the
+CMT2300A chip. See [`firmware/REFLASH.md`](firmware/REFLASH.md) for full notes.
+
+### Option B — Build from source
+Requires [PlatformIO](https://platformio.org/):
+```bash
+git clone https://github.com/pawangkaratpanuwat/DTU.git
+cd DTU
+pio run -e generic_esp32                      # build
+pio run -e generic_esp32 -t upload --upload-port /dev/ttyUSB0   # flash over USB
+```
+Or flash over the air once running: `curl -F "data=@.pio/build/generic_esp32/firmware.bin" http://<device-ip>/api/firmware/update` (with MD5 + admin auth — see OpenDTU docs below).
+
+### If you have a different inverter and OpenDTU reports "Unknown"
+Your serial prefix probably isn't in `isValidSerial()` either. Check your
+inverter's serial number against the patch above for the pattern, add your
+prefix the same way, then rebuild (Option B).
+
+---
+
 # OpenDTU
 
 [![OpenDTU Build](https://github.com/tbnobody/OpenDTU/actions/workflows/build.yml/badge.svg)](https://github.com/tbnobody/OpenDTU/actions/workflows/build.yml)
